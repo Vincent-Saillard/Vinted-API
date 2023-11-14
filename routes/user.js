@@ -5,11 +5,11 @@ const encBase64 = require("crypto-js/enc-base64");
 const cloudinary = require("cloudinary").v2;
 const router = express.Router();
 
-// Import du modèle
+// Import model
 const User = require("../models/User");
 const fileUpload = require("express-fileupload");
 
-// Connexion au compte cloudinary
+// connexion to cloudinary
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
   api_key: process.env.API_KEY,
@@ -17,20 +17,20 @@ cloudinary.config({
   secure: true,
 });
 
-// fonction pour transformer les fichiers images pour envoi vers cloudinary
+// function to transform pic files so they can be red by cloudinary
 const convertToBase64 = (file) => {
   return `data:${file.mimetype};base64,${file.data.toString("base64")}`;
 };
 
-// Création d'un nouvel utilisateur
+// Create new user
 router.post("/user/signup", fileUpload(), async (req, res) => {
   try {
-    // vérifie si l'email existe déjà ou non
+    // check if email exists or not
     const existingUser = await User.find({ email: req.body.email });
     if (existingUser.length > 0) {
       res.status(400).json({ message: "This email already exists" });
     } else {
-      // import de l'image de profile sur cloudinary
+      // import avatar to cloudinary
       const transformedPic = convertToBase64(req.files.picture);
       const profilePic = await cloudinary.uploader.upload(transformedPic);
       const newProfilePic = await cloudinary.uploader.rename(
@@ -69,11 +69,11 @@ router.post("/user/signup", fileUpload(), async (req, res) => {
   }
 });
 
-// Connexion de l'utilisateur à son espace
+// user connexion route
 router.post("/user/login", async (req, res) => {
   try {
     const searchingUser = await User.find({ email: req.body.email });
-    // l'email n'existe pas dans la db
+    // email does not exist in db
     if (searchingUser.length === 0) {
       res
         .status(400)
@@ -83,7 +83,9 @@ router.post("/user/login", async (req, res) => {
       const savedSalt = searchingUser[0].salt;
       const savedHash = searchingUser[0].hash;
       if (savedHash !== SHA256(givenPassword + savedSalt).toString(encBase64)) {
-        res.status(400).json({ message: "Wrong password" });
+        res
+          .status(400)
+          .json({ message: "Wrong username / password combination" });
       } else {
         res.status(200).json({
           _id: searchingUser[0].id,

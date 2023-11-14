@@ -3,10 +3,10 @@ const router = express.Router();
 const cloudinary = require("cloudinary").v2;
 const fileUpload = require("express-fileupload");
 
-// Import du modèle
+// Import model
 const Offer = require("../models/Offer");
 
-// Connexion au compte cloudinary
+// connexion to cloudinary
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
   api_key: process.env.API_KEY,
@@ -14,24 +14,23 @@ cloudinary.config({
   secure: true,
 });
 
-// fonction pour transformer les fichiers images pour envoi vers cloudinary
+// function to transform pic files so they can be red by cloudinary
 const convertToBase64 = (file) => {
   return `data:${file.mimetype};base64,${file.data.toString("base64")}`;
 };
 
-// fonction de vérification d'authentification du client
+// function to autentify client
 const isAuthenticated = require("../middlewares/isAuthenticated");
 
-// Création de la route permettant d'ajourt une offre, les informations envoyées sont de type POST et l'on doit vérifier le token via les headers par la fonction isAuthenticated
+// Route to create offer, checking user token in middleware
 router.post("/offers", fileUpload(), isAuthenticated, async (req, res) => {
   try {
-    // récupération des données du body en destructuring
     const { title, description, price, condition, city, brand, size, color } =
       req.body;
-    // Envoi de l'image à cloudinary
+    // Send to cloudinary
     const transformedPic = convertToBase64(req.files.picture);
     const result = await cloudinary.uploader.upload(transformedPic);
-    // ajout de l'offre dans la base de données
+    // add offer to db
     const newOffer = new Offer({
       product_name: title,
       product_description: description,
@@ -50,12 +49,12 @@ router.post("/offers", fileUpload(), isAuthenticated, async (req, res) => {
       owner: req.user,
     });
     // console.log(newOffer);
-    // mise à jour du nom et chemin d'accès de la photo avec l'id de l'objet de base de données
-    newResult = await cloudinary.uploader.rename(
+    // update access with folder name
+    const newResult = await cloudinary.uploader.rename(
       result.public_id,
       `vinted/offers/${newOffer._id}`
     );
-    // Mise à jour des info de l'image après modif du nom et chemin d'accès
+    // updating pic information with folder name
     newOffer.product_image.public_id = newResult.public_id;
     newOffer.product_image.secure_url = newResult.secure_url;
     await newOffer.save();
@@ -65,7 +64,7 @@ router.post("/offers", fileUpload(), isAuthenticated, async (req, res) => {
   }
 });
 
-//Route pour permettre à l'user de modifier son annonce
+// route to modify offer
 router.put("/offers/:id", fileUpload(), isAuthenticated, async (req, res) => {
   try {
     const OfferToUpdate = await Offer.findById(req.params.id);
@@ -81,9 +80,9 @@ router.put("/offers/:id", fileUpload(), isAuthenticated, async (req, res) => {
     OfferToUpdate.product_details.MARQUE = brand;
     OfferToUpdate.product_details.TAILLE = size;
     OfferToUpdate.product_details.COULEUR = color;
-    // si il y a modification de l'image
+    // if pic is modified
     if (req.files) {
-      // Envoi de l'image à cloudinary
+      // Sending new pic to cloudinary
       const transformedPic = convertToBase64(req.files.picture);
       const result = await cloudinary.uploader.upload(transformedPic);
       await cloudinary.uploader.destroy(OfferToUpdate.product_image.public_id);
@@ -101,7 +100,7 @@ router.put("/offers/:id", fileUpload(), isAuthenticated, async (req, res) => {
   }
 });
 
-// Route pour permettre à l'user de supprimer une offre
+// route to delete offer
 router.delete("/offers/:id", isAuthenticated, async (req, res) => {
   try {
     const offerToDelete = await Offer.findById(req.params.id);
@@ -115,15 +114,15 @@ router.delete("/offers/:id", isAuthenticated, async (req, res) => {
   }
 });
 
-// Route pour visualiser les articles en fonction de filtres passés en query
+// route to see offers with queries
 router.get("/offers", async (req, res) => {
   try {
     let { title, priceMin, priceMax, sort, page, quantityByPage } = req.query;
-    // détermination de l'affichage (nombre d'articles par pages et nombre de pages)
-    // si la quantité par pages n'est pas précisé on va limiter à 3 resultats par pages
-    // si le numéro de la page n'est pas précisé on afficher la première page
+    // show offers depending on number of pages and number of article by pages
+    // if quantity by page is not defined by user limit will be 20
+    // if page number is not defined we display first page
     if (!quantityByPage) {
-      quantityByPage = 3;
+      quantityByPage = 20;
     }
     if (!page) {
       page = 1;
@@ -209,7 +208,7 @@ router.get("/offers", async (req, res) => {
   }
 });
 
-// Route pour récupérer une annonce avec son id
+// route to find offer with its id
 router.get("/offers/:id", async (req, res) => {
   try {
     const specificOffer = await Offer.findById(req.params.id).populate(

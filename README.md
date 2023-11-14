@@ -52,10 +52,10 @@ Vincent Saillard
 
 ## Acknowledgments
 
-Ihttps://pbs.twimg.com/profile_images/1260194537001103361/grioVrbA_400x400.png
+[Northflank](https://pbs.twimg.com/profile_images/1260194537001103361/grioVrbA_400x400.png)
 
-https://logowik.com/content/uploads/images/postman-api-platform6643.logowik.com.webp
+[Postman](https://logowik.com/content/uploads/images/postman-api-platform6643.logowik.com.webp)
 
-https://infinapps.com/wp-content/uploads/2018/10/mongodb-logo.png
+[MongoDB](https://infinapps.com/wp-content/uploads/2018/10/mongodb-logo.png)
 
-https://market-assets.strapi.io/logos/recQCFBl61THeLN0w-logo
+[Cloudinary](https://market-assets.strapi.io/logos/recQCFBl61THeLN0w-logo)
